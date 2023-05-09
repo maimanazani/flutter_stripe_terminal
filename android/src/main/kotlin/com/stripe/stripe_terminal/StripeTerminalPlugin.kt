@@ -347,18 +347,18 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                             connectionConfig,
                             object : BluetoothReaderListener {
                               
-                                // override fun onReportReaderEvent(message: ReaderEvent) {
-                                //     generateLog(
-                                //         "wqreqweqweqw",
-                                //         "Started connecting  eqweqwe"
-                                //     )
-                                // }
-                                // override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                                //     generateLog(
-                                //         "connectToInternetReader",
-                                //         "Started connecting  ssssssss"
-                                //     )
-                                // }
+                                override fun onReportReaderEvent(message: ReaderEvent) {
+                                    generateLog(
+                                        "wqreqweqweqw",
+                                        "Started connecting  eqweqwe"
+                                    )
+                                }
+                                override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                                    generateLog(
+                                        "connectToInternetReader",
+                                        "Started connecting  ssssssss"
+                                    )
+                                }
                             },
                             object : ReaderCallback {
                                 override fun onFailure(e: TerminalException) {
