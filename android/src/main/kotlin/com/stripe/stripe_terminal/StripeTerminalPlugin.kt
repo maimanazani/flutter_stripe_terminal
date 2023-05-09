@@ -346,17 +346,12 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                             reader,
                             connectionConfig,
                             object : BluetoothReaderListener {
-                              
-                                override fun onReportReaderEvent(message: ReaderEvent) {
-                                    generateLog(
-                                        "wqreqweqweqw",
-                                        "Started connecting  eqweqwe"
-                                    )
-                                }
+                                                             
                                 override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                                    channel.invokeMethod("onReaderEvent", message);
                                     generateLog(
-                                        "connectToInternetReader",
-                                        "Started connecting  ssssssss"
+                                        "===========onReaderEventLog======",
+                                        message)
                                     )
                                 }
                             },
@@ -743,6 +738,15 @@ fun PaymentIntent.rawJson(): HashMap<String, Any?> {
 
     return json
 }
+
+// fun handleReaderDisplayMessage(readerDisplayMessage: ReaderDisplayMessage): String{
+//     return when (connectionStatus) {
+//         readerDisplayMessage.TRY_ANOTHER_CARD -> "Try Another Card"
+//         ConnectionStatus.CONNECTING -> 2
+//         ConnectionStatus.CONNECTED -> 1
+//         else -> 0
+//     }
+// }
 
 fun handleConnectionStatus(connectionStatus: ConnectionStatus): Int {
     return when (connectionStatus) {
