@@ -67,6 +67,12 @@ class StripeTerminal {
   /// you can listen to the native logs to understand whats going wrong.
   Stream<StripeLog> get onNativeLogs => _logsStreamController.stream;
 
+  /// Stream controller for the logs coming from the native platform
+  final StreamController<String> _readerEventsStreamController =
+      StreamController<String>();
+
+  Stream<String> get onReaderEvent => _readerEventsStreamController.stream;
+
   /// Connects to a bluetooth reader, only works if you have scanned devices within this session.
   ///
   /// Always run `discoverReaders` before calling this function
@@ -96,6 +102,7 @@ class StripeTerminal {
   /// Connects to a bluetooth reader, only works if you have scanned devices within this session.
   ///
   /// Always run `discoverReaders` before calling this function
+
   Future<bool> connectBluetoothReader(
     /// Serial number of the bluetooth reader to connect with
     String readerSerialNumber, {
