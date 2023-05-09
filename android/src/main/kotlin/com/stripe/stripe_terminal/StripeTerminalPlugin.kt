@@ -351,7 +351,7 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                                     channel.invokeMethod("onReaderEvent", message);
                                     generateLog(
                                         "===========onReaderEventLog======",
-                                        message.toString())
+                                        message.toString()
                                     )
                                 }
                             },
