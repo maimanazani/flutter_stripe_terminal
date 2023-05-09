@@ -25,7 +25,8 @@ class _MyAppState extends State<MyApp> {
   final Dio _dio = Dio(
     BaseOptions(
       // TODO: THIS URL does not work
-      baseUrl: "https://deb8-103-163-182-241.in.ngrok.io",
+      baseUrl:
+          "https://d2a2-2001-f40-96e-319-a5d5-30c3-cc3e-a89f.ngrok-free.app",
     ),
   );
 
@@ -47,13 +48,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<String> createPaymentIntent() async {
-    Response invoice = await _dio.post("/createPaymentIntent", data: {
-      "email": "awazgyawali@gmail.com",
-      "order": {"test": "1"},
-      "ticketCount": 3,
-      "price": 5,
-    });
-    return jsonDecode(invoice.data)["paymentIntent"]["client_secret"];
+    Response invoice =
+        await _dio.post("/readers/process-payment", data: {"amount": 200});
+    return invoice.data["data"]["client_secret"];
   }
 
   late StripeTerminal stripeTerminal;
@@ -81,175 +78,177 @@ class _MyAppState extends State<MyApp> {
       appBar: AppBar(
         title: const Text('Plugin example app'),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            ListTile(
-              onTap: () {
-                setState(() {
-                  simulated = !simulated;
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: [
+              ListTile(
+                onTap: () {
+                  setState(() {
+                    simulated = !simulated;
+                    _initStripe();
+                  });
+                },
+                title: const Text("Scanning mode"),
+                trailing: Text(simulated ? "Simulator" : "Real"),
+              ),
+              TextButton(
+                child: const Text("Init Stripe"),
+                onPressed: () async {
                   _initStripe();
-                });
-              },
-              title: const Text("Scanning mode"),
-              trailing: Text(simulated ? "Simulator" : "Real"),
-            ),
-            TextButton(
-              child: const Text("Init Stripe"),
-              onPressed: () async {
-                _initStripe();
-              },
-            ),
-            TextButton(
-              child: const Text("Get Connection Token"),
-              onPressed: () async {
-                String connectionToken = await getConnectionString();
-                _showSnackbar(connectionToken);
-              },
-            ),
-            if (_sub == null)
+                },
+              ),
               TextButton(
-                child: const Text("Scan Devices"),
+                child: const Text("Get Connection Token"),
                 onPressed: () async {
-                  setState(() {
-                    readers = [];
-                  });
-                  _sub = stripeTerminal
-                      .discoverReaders(
-                    DiscoverConfig(
-                      discoveryMethod: DiscoveryMethod.bluetooth,
-                      simulated: simulated,
-                    ),
-                  )
-                      .listen((readers) {
+                  String connectionToken = await getConnectionString();
+                  _showSnackbar(connectionToken);
+                },
+              ),
+              if (_sub == null)
+                TextButton(
+                  child: const Text("Scan Devices"),
+                  onPressed: () async {
                     setState(() {
-                      this.readers = readers;
+                      readers = [];
                     });
-                  });
-                },
-              ),
-            if (_sub != null)
-              TextButton(
-                child: const Text("Stop Scanning"),
-                onPressed: () async {
-                  setState(() {
-                    _sub?.cancel();
-                    _sub = null;
-                  });
-                },
-              ),
-            TextButton(
-              child: const Text("Connection Status"),
-              onPressed: () async {
-                stripeTerminal.connectionStatus().then((status) {
-                  _showSnackbar("Connection status: ${status.toString()}");
-                });
-              },
-            ),
-            TextButton(
-              child: const Text("Connected Device"),
-              onPressed: () async {
-                stripeTerminal
-                    .fetchConnectedReader()
-                    .then((StripeReader? reader) {
-                  _showSnackbar("Connection Device: ${reader?.toJson()}");
-                });
-              },
-            ),
-            if (readers != null)
-              ...readers!.map(
-                (e) => ListTile(
-                  title: Text(e.serialNumber),
-                  trailing: Text(describeEnum(e.batteryStatus)),
-                  leading: Text(e.locationId ?? "No Location Id"),
-                  onTap: () async {
-                    await stripeTerminal
-                        .connectToReader(
-                      e.serialNumber,
-                      locationId: "tml_EoMcZwfY6g8btZ",
+                    _sub = stripeTerminal
+                        .discoverReaders(
+                      DiscoverConfig(
+                        discoveryMethod: DiscoveryMethod.bluetooth,
+                        simulated: simulated,
+                      ),
                     )
-                        .then((value) {
-                      _showSnackbar("Connected to a device");
-                    }).catchError((e) {
-                      if (e is PlatformException) {
-                        _showSnackbar(e.message ?? e.code);
-                      }
+                        .listen((readers) {
+                      setState(() {
+                        this.readers = readers;
+                      });
                     });
                   },
-                  subtitle: Text(describeEnum(e.deviceType)),
                 ),
-              ),
-            TextButton(
-              child: const Text("Read Reusable Card Detail"),
-              onPressed: () async {
-                stripeTerminal
-                    .readReusableCardDetail()
-                    .then((StripePaymentMethod paymentMethod) {
-                  _showSnackbar(
-                    "A card was read: ${paymentMethod.card?.toJson()}",
-                  );
-                });
-              },
-            ),
-            TextButton(
-              child: const Text("Set reader display"),
-              onPressed: () async {
-                stripeTerminal.setReaderDisplay(
-                  ReaderDisplay(
-                    type: DisplayType.cart,
-                    cart: DisplayCart(
-                      currency: "USD",
-                      tax: 130,
-                      total: 1000,
-                      lineItems: [
-                        DisplayLineItem(
-                          description: "hello 1",
-                          quantity: 1,
-                          amount: 500,
-                        ),
-                        DisplayLineItem(
-                          description: "hello 2",
-                          quantity: 1,
-                          amount: 500,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-            TextButton(
-              child: const Text("Collect Payment Method"),
-              onPressed: () async {
-                paymentIntentId = await createPaymentIntent();
-                stripeTerminal
-                    .collectPaymentMethod(paymentIntentId!)
-                    .then((StripePaymentIntent paymentIntent) async {
-                  _dio.post("/confirmPaymentIntent", data: {
-                    "paymentIntentId": paymentIntent.id,
-                  });
-                  _showSnackbar(
-                    "A payment method was captured",
-                  );
-                });
-              },
-            ),
-            TextButton(
-              child: const Text("Misc Button"),
-              onPressed: () async {
-                StripeReader.fromJson(
-                  {
-                    "locationStatus": 2,
-                    "deviceType": 3,
-                    "serialNumber": "STRM26138003393",
-                    "batteryStatus": 0,
-                    "simulated": false,
-                    "availableUpdate": false
+              if (_sub != null)
+                TextButton(
+                  child: const Text("Stop Scanning"),
+                  onPressed: () async {
+                    setState(() {
+                      _sub?.cancel();
+                      _sub = null;
+                    });
                   },
-                );
-              },
-            ),
-          ],
+                ),
+              TextButton(
+                child: const Text("Connection Status"),
+                onPressed: () async {
+                  stripeTerminal.connectionStatus().then((status) {
+                    _showSnackbar("Connection status: ${status.toString()}");
+                  });
+                },
+              ),
+              TextButton(
+                child: const Text("Connected Device"),
+                onPressed: () async {
+                  stripeTerminal
+                      .fetchConnectedReader()
+                      .then((StripeReader? reader) {
+                    _showSnackbar("Connection Device: ${reader?.toJson()}");
+                  });
+                },
+              ),
+              if (readers != null)
+                ...readers!.map(
+                  (e) => ListTile(
+                    title: Text(e.serialNumber),
+                    trailing: Text(describeEnum(e.batteryStatus)),
+                    leading: Text(e.locationId ?? "No Location Id"),
+                    onTap: () async {
+                      await stripeTerminal
+                          .connectBluetoothReader(
+                        e.serialNumber,
+                        locationId: "tml_EoMcZwfY6g8btZ",
+                      )
+                          .then((value) {
+                        _showSnackbar("Connected to a device");
+                      }).catchError((e) {
+                        if (e is PlatformException) {
+                          _showSnackbar(e.message ?? e.code);
+                        }
+                      });
+                    },
+                    subtitle: Text(describeEnum(e.deviceType)),
+                  ),
+                ),
+              TextButton(
+                child: const Text("Read Reusable Card Detail"),
+                onPressed: () async {
+                  stripeTerminal
+                      .readReusableCardDetail()
+                      .then((StripePaymentMethod paymentMethod) {
+                    _showSnackbar(
+                      "A card was read: ${paymentMethod.card?.toJson()}",
+                    );
+                  });
+                },
+              ),
+              TextButton(
+                child: const Text("Set reader display"),
+                onPressed: () async {
+                  stripeTerminal.setReaderDisplay(
+                    ReaderDisplay(
+                      type: DisplayType.cart,
+                      cart: DisplayCart(
+                        currency: "USD",
+                        tax: 130,
+                        total: 1000,
+                        lineItems: [
+                          DisplayLineItem(
+                            description: "hello 1",
+                            quantity: 1,
+                            amount: 500,
+                          ),
+                          DisplayLineItem(
+                            description: "hello 2",
+                            quantity: 1,
+                            amount: 500,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              TextButton(
+                child: const Text("Collect Payment Method"),
+                onPressed: () async {
+                  paymentIntentId = await createPaymentIntent();
+                  stripeTerminal
+                      .collectPaymentMethod(paymentIntentId!)
+                      .then((StripePaymentIntent paymentIntent) async {
+                    // _dio.post("/confirmPaymentIntent", data: {
+                    //   "paymentIntentId": paymentIntent.id,
+                    // });
+                    _showSnackbar(
+                      "A payment method was captured",
+                    );
+                  });
+                },
+              ),
+              TextButton(
+                child: const Text("Misc Button"),
+                onPressed: () async {
+                  StripeReader.fromJson(
+                    {
+                      "locationStatus": 2,
+                      "deviceType": 3,
+                      "serialNumber": "STRM26138003393",
+                      "batteryStatus": 0,
+                      "simulated": false,
+                      "availableUpdate": false
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

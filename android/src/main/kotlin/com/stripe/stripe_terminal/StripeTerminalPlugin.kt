@@ -29,13 +29,14 @@ import io.flutter.plugin.common.PluginRegistry
 
 /** StripeTerminalPlugin */
 class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
-    PluginRegistry.RequestPermissionsResultListener, ActivityAware, FlutterActivityEvents {
+    PluginRegistry.RequestPermissionsResultListener, ActivityAware, FlutterActivityEvents  {
 
     private lateinit var channel: MethodChannel
     private var currentActivity: Activity? = null
     private val REQUEST_CODE_LOCATION = 1012
     private lateinit var tokenProvider: StripeTokenProvider
     private var cancelableDiscover: Cancelable? = null
+    private var bluetoothReaderListener: BluetoothReaderListener? = null
     private var activeReaders: List<Reader> = arrayListOf()
     private var simulated = false
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -92,6 +93,7 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
         log["message"] = message
         channel.invokeMethod("onNativeLog", log)
     }
+   
 
     @OptIn(OnReaderTips::class)
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -345,8 +347,19 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                             reader,
                             connectionConfig,
                             object : BluetoothReaderListener {
-
-
+                              
+                                override fun onReportReaderEvent(message: ReaderEvent) {
+                                    generateLog(
+                                        "wqreqweqweqw",
+                                        "Started connecting  eqweqwe"
+                                    )
+                                }
+                                override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                                    generateLog(
+                                        "connectToInternetReader",
+                                        "Started connecting  ssssssss"
+                                    )
+                                }
                             },
                             object : ReaderCallback {
                                 override fun onFailure(e: TerminalException) {
@@ -436,7 +449,8 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                     Terminal.getInstance()
                         .retrievePaymentIntent(
                             paymentIntentClientSecret,
-                            object : PaymentIntentCallback {
+                            object : PaymentIntentCallback {                         
+
                                 override fun onFailure(e: TerminalException) {
                                     result.error(
                                         "stripeTerminal#unableToRetrivePaymentIntent",
@@ -449,7 +463,7 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                                     Terminal.getInstance().collectPaymentMethod(
                                         paymentIntent,
                                         object : PaymentIntentCallback {
-
+                                         
                                             override fun onSuccess(paymentIntent: PaymentIntent) {
                                                 currentActivity?.runOnUiThread {
                                                     generateLog(
@@ -620,7 +634,7 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
     override fun onDetachedFromActivityForConfigChanges() {
         currentActivity = null
     }
-
+    
 
     /*
      These functions are stub functions that are not relevent to the plugin but needs to be defined in order to get the few necessary callbacks
