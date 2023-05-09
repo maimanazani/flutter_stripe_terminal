@@ -36,7 +36,6 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
     private val REQUEST_CODE_LOCATION = 1012
     private lateinit var tokenProvider: StripeTokenProvider
     private var cancelableDiscover: Cancelable? = null
-    private var bluetoothReaderListener: BluetoothReaderListener? = null
     private var activeReaders: List<Reader> = arrayListOf()
     private var simulated = false
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -348,18 +347,18 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                             connectionConfig,
                             object : BluetoothReaderListener {
                               
-                                override fun onReportReaderEvent(message: ReaderEvent) {
-                                    generateLog(
-                                        "wqreqweqweqw",
-                                        "Started connecting  eqweqwe"
-                                    )
-                                }
-                                override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                                    generateLog(
-                                        "connectToInternetReader",
-                                        "Started connecting  ssssssss"
-                                    )
-                                }
+                                // override fun onReportReaderEvent(message: ReaderEvent) {
+                                //     generateLog(
+                                //         "wqreqweqweqw",
+                                //         "Started connecting  eqweqwe"
+                                //     )
+                                // }
+                                // override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
+                                //     generateLog(
+                                //         "connectToInternetReader",
+                                //         "Started connecting  ssssssss"
+                                //     )
+                                // }
                             },
                             object : ReaderCallback {
                                 override fun onFailure(e: TerminalException) {
