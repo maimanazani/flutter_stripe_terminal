@@ -348,11 +348,7 @@ class StripeTerminalPlugin : FlutterPlugin, MethodCallHandler,
                             object : BluetoothReaderListener {
                                                              
                                 override fun onRequestReaderDisplayMessage(message: ReaderDisplayMessage) {
-                                    channel.invokeMethod("onReaderEvent", message.toString());
-                                    generateLog(
-                                        "===========onReaderEventLog======",
-                                        message.toString()
-                                    )
+                                    channel.invokeMethod("onReaderEvent", message.toString());                                    
                                 }
                             },
                             object : ReaderCallback {
