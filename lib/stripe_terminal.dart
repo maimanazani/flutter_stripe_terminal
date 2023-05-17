@@ -35,7 +35,7 @@ class StripeTerminal {
           ));
           break;
         case "onReaderEvent":
-          _readerStreamController.add(call.arguments);
+          _readerEventsStreamController.add(call.arguments);
           break;
         case "onReadersFound":
           List readers = call.arguments;
